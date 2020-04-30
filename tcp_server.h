@@ -1,13 +1,8 @@
 /******************************************************************************
-* File Name:   main.c
+* File Name:   tcp_server.h
 *
-* Description: This is the source code for TCP Server Example in ModusToolbox.
-* In this example, TCP server establishes a connection with a TCP client.
-* Once the connection completes successfully, the server allows the user to 
-* send LED ON/OFF command to the TCP client and the client responds by sending
-* an acknowledgement message to the server.
-*
-* Related Document: See Readme.md
+* Description: This file contains declaration of task and functions related to
+* TCP server operation.
 *
 *******************************************************************************
 * (c) 2020, Cypress Semiconductor Corporation. All rights reserved.
@@ -41,78 +36,40 @@
 * indemnify Cypress against all liability.
 *******************************************************************************/
 
-/* Header file includes */
-#include "cyhal.h"
-#include "cybsp.h"
-#include "cy_retarget_io.h"
-
-/* FreeRTOS header file */
-#include <FreeRTOS.h>
-#include <task.h>
-
-/* TCP server task header file. */
-#include "tcp_server.h"
+#ifndef TCP_SERVER_H_
+#define TCP_SERVER_H_
 
 /*******************************************************************************
 * Macros
 ********************************************************************************/
-/* RTOS related macros for TCP server task. */
-#define TCP_SERVER_TASK_STACK_SIZE                (1024 * 5)
-#define TCP_SERVER_TASK_PRIORITY                  (1)
+/* Wi-Fi Credentials: Modify WIFI_SSID, WIFI_PASSWORD, and WIFI_SECURITY_TYPE
+ * to match your Wi-Fi network credentials.
+ * Note: Maximum length of the Wi-Fi SSID and password is set to
+ * CY_WCM_MAX_SSID_LEN and CY_WCM_MAX_PASSPHRASE_LEN as defined in cy_wcm.h file.
+ */
+#define WIFI_SSID                                 "MY_WIFI_SSID"
+#define WIFI_PASSWORD                             "MY_WIFI_PASSWORD"
+
+/* Security type of the Wi-Fi access point. See 'cy_wcm_security_t' structure
+ * in "cy_wcm.h" for more details.
+ */
+#define WIFI_SECURITY_TYPE                        CY_WCM_SECURITY_WPA2_AES_PSK
+
+/* Maximum number of connection retries to a Wi-Fi network. */
+#define MAX_WIFI_CONN_RETRIES                     (10u)
+
+/* Wi-Fi re-connection time interval in milliseconds */
+#define WIFI_CONN_RETRY_INTERVAL_MSEC             (1000)
+
+/* TCP server related macros. */
+#define TCP_SERVER_PORT                           (50007)
+#define TCP_SERVER_MAX_PENDING_CONNECTIONS        (3)
+#define TCP_SERVER_RECV_TIMEOUT_MS                (500)
+#define MAX_TCP_RECV_BUFFER_SIZE                  (20)
 
 /*******************************************************************************
-* Global Variables
+* Function Prototypes
 ********************************************************************************/
-/* This enables RTOS aware debugging. */
-volatile int uxTopUsedPriority;
+void tcp_server_task(void *arg);
 
-/*******************************************************************************
- * Function Name: main
- ********************************************************************************
- * Summary:
- *  System entrance point. This function sets up user tasks and then starts
- *  the RTOS scheduler.
- *
- * Parameters:
- *  void
- *
- * Return:
- *  int
- *
- *******************************************************************************/
-int main()
-{
-    cy_rslt_t result ;
-
-    /* This enables RTOS aware debugging in OpenOCD. */
-    uxTopUsedPriority = configMAX_PRIORITIES - 1 ;
-
-    /* Initialize the board support package. */
-    result = cybsp_init() ;
-    CY_ASSERT(result == CY_RSLT_SUCCESS) ;
-
-    /* Enable global interrupts. */
-    __enable_irq();
-
-    /* Initialize retarget-io to use the debug UART port. */
-    cy_retarget_io_init(CYBSP_DEBUG_UART_TX, CYBSP_DEBUG_UART_RX, 
-                        CY_RETARGET_IO_BAUDRATE);
-
-    /* \x1b[2J\x1b[;H - ANSI ESC sequence to clear screen. */
-    printf("\x1b[2J\x1b[;H");
-    printf("===============================================================\n");
-    printf("CE229153 - AnyCloud Example: TCP Server\n");
-    printf("===============================================================\n\n");
-
-    /* Create the tasks. */
-    xTaskCreate(tcp_server_task, "Network task", TCP_SERVER_TASK_STACK_SIZE, NULL, 
-               TCP_SERVER_TASK_PRIORITY, NULL);
-
-    /* Start the FreeRTOS scheduler. */
-    vTaskStartScheduler();
-
-    /* Should never get here. */
-    CY_ASSERT(0);
-}
-
-/* [] END OF FILE */
+#endif /* TCP_SERVER_H_ */

@@ -7,7 +7,7 @@
 #
 ################################################################################
 # \copyright
-# Copyright 2018-2019 Cypress Semiconductor Corporation
+# Copyright 2018-2020 Cypress Semiconductor Corporation
 # SPDX-License-Identifier: Apache-2.0
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -31,7 +31,7 @@
 # Target board/hardware
 TARGET=CY8CPROTO-062-4343W
 # Name of application (used to derive name of final linked file).
-APPNAME=mtb-example-connectivity-tcp-server
+APPNAME=mtb-example-anycloud-tcp-server
 
 # Name of toolchain to use. Options include:
 #
@@ -66,15 +66,13 @@ VERBOSE=
 # ... then code in directories named COMPONENT_foo and COMPONENT_bar will be
 # added to the build
 #
-COMPONENTS=FREERTOS PSOC6HAL
+COMPONENTS=FREERTOS LWIP MBEDTLS
 
 # Add connectivity device based on the TARGET board
 ifeq ($(TARGET), CY8CPROTO-062-4343W)
 COMPONENTS+=4343W 
 else ifeq ($(TARGET), CY8CKIT-062S2-43012)
 COMPONENTS+=43012
-else ifeq ($(TARGET), CY8CKIT-062-WIFI-BT)
-COMPONENTS+=4343W
 endif  
 
 # Like COMPONENTS, but disable optional code that was enabled by default.
@@ -94,7 +92,7 @@ INCLUDES=
 MBEDTLSFLAGS = MBEDTLS_USER_CONFIG_FILE='"configs/mbedtls_user_config.h"'
 
 # Add additional defines to the build process (without a leading -D).
-DEFINES=$(MBEDTLSFLAGS) CYBSP_WIFI_CAPABLE CY_RETARGET_IO_CONVERT_LF_TO_CRLF 
+DEFINES=$(MBEDTLSFLAGS) CYBSP_WIFI_CAPABLE CY_RETARGET_IO_CONVERT_LF_TO_CRLF CY_SD_HOST_CLK_RAMP_UP_TIME_MS_WAKEUP=0 CY_RTOS_AWARE
 
 # CY8CPROTO-062-4343W board shares the same GPIO for the user button (SW2)
 # and the CYW4343W host wake up pin. Since this example uses the GPIO for

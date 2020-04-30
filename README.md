@@ -1,49 +1,53 @@
-# ModusToolbox Connectivity Example: TCP Server
+# AnyCloud Example: TCP Server
 
-This code example demonstrates implementation of a TCP server with PSoC® 6 MCU and CYW43012/CYW4343W connectivity device. In this example, TCP server establishes a connection with a TCP client. Once the connection completes successfully between the TCP server and the client, the client sends a "Hello ModusToolbox!" message to the server and the server responds by sending a message "Hello World!".
+This code example demonstrates implementation of a TCP server with PSoC® 6 MCU and CYW43xxx connectivity devices. In this example, TCP server establishes a connection with a TCP client. Once the connection completes successfully, the server allows the user to send LED ON/OFF command to the TCP client and the client responds by sending an acknowledgement message to the server.
+
+This example uses the [Wi-Fi middleware core](https://github.com/cypresssemiconductorco/wifi-mw-core) library of the AnyCloud SDK. This library enables Wi-Fi based application development by bundling together various other libraries - FreeRTOS, Wi-Fi Host Driver (WHD), lwIP TCP/IP stack, Mbed TLS, and Cypress secure socket. The Cypress secure socket library provides an easy-to-use API by abstracting the network stack (lwIP) and the security stack (Mbed TLS).
 
 ## Requirements
 
-- [ModusToolbox™ IDE](https://www.cypress.com/products/modustoolbox-software-environment) v2.0
+- [ModusToolbox™ software](https://www.cypress.com/products/modustoolbox-software-environment) v2.1
 - Programming Language: C
+- Supported Toolchains: Arm GCC, IAR
 - Associated Parts: All [PSoC® 6 MCU](http://www.cypress.com/PSoC6) parts with SDIO, [CYW43012](https://www.cypress.com/documentation/product-overviews/cypress-cyw43012), [CYW4343W](https://www.cypress.com/documentation/datasheets/cyw4343w-single-chip-80211-bgn-macbasebandradio-bluetooth-41)
 
 ## Supported Kits
 
 - [PSoC 6 Wi-Fi BT Prototyping Kit](https://www.cypress.com/CY8CPROTO-062-4343W) (CY8CPROTO-062-4343W) - Default target
-- [PSoC 6 WiFi-BT Pioneer Kit](https://www.cypress.com/CY8CKIT-062-WiFi-BT) (CY8CKIT-062-WIFI-BT)
 - [PSoC 62S2 Wi-Fi BT Pioneer Kit](https://www.cypress.com/CY8CKIT-062S2-43012) (CY8CKIT-062S2-43012)
 
 ## Hardware Setup
 
 This example uses the board's default configuration. See the kit user guide to ensure the board is configured correctly.
 
-**Note**: The PSoC 6 BLE Pioneer Kit and the PSoC 6 WiFi-BT Pioneer Kit ship with KitProg2 installed. ModusToolbox software requires KitProg3. Before using this code example, make sure that the board is upgraded to KitProg3. The tool and instructions are available in the [Firmware Loader](https://github.com/cypresssemiconductorco/Firmware-loader) GitHub repository. If you do not upgrade, you will see an error like "unable to find CMSIS-DAP device" or "KitProg firmware is out of date".
+**Note**: The PSoC 6 BLE Pioneer Kit (CY8CKIT-062-BLE) and the PSoC 6 WiFi-BT Pioneer Kit (CY8CKIT-062-WIFI-BT) ship with KitProg2 installed. ModusToolbox software requires KitProg3. Before using this code example, make sure that the board is upgraded to KitProg3. The tool and instructions are available in the [Firmware Loader](https://github.com/cypresssemiconductorco/Firmware-loader) GitHub repository. If you do not upgrade, you will see an error like "unable to find CMSIS-DAP device" or "KitProg firmware is out of date".
 
 ## Software Setup
 
 - Install a terminal emulator if you don't have one. Instructions in this document use [Tera Term](https://ttssh2.osdn.jp/index.html.en). 
-- Python Interpreter. This code example is tested with [Python 3.8.1](https://www.python.org/downloads/release/python-381/).
+- Install a Python Interpreter if you don't have one. This code example is tested using [Python 3.7.7](https://www.python.org/downloads/release/python-377/).
 
 ## Using the Code Example
 
-### In ModusToolbox IDE:
+### In Eclipse IDE for ModusToolbox:
 
-1. Click the **New Application** link in the Quick Panel (or, use **File > New > ModusToolbox IDE Application**).
+1. Click the **New Application** link in the Quick Panel (or, use **File** > **New** > **ModusToolbox Application**).
 
-2. Pick a kit supported by the code example from the list shown in the **IDE Application** dialog.
+2. Pick a kit supported by the code example from the list shown in the **Project Creator - Choose Board Support Package (BSP)** dialog.
 
-   When you select a supported kit, the example is reconfigured automatically to work with the kit. To work with a different supported kit later, use the **Library Manager** to choose the BSP for the supported kit. You can use the Library Manager to select or update the BSP and firmware libraries used in this application. To access the Library Manager, right-click the application name from the Project Workspace window in the IDE, and select **ModusToolbox > Library Manager**. For more details, see the IDE User Guide: *{ModusToolbox install directory}/ide_2.0/docs/mt_ide_user_guide.pdf*.
+    When you select a supported kit, the example is reconfigured automatically to work with the kit. To work with a different supported kit later, use the **Library Manager** to choose the BSP for the supported kit. You can use the Library Manager to select or update the BSP and firmware libraries used in this application. To access the Library Manager, right-click the application name from the Project Workspace window in the IDE, and select **ModusToolbox** > **Library Manager**. You can also access it from the **Quick Panel**.
 
    You can also just start the application creation process again and select a different kit.
 
    If you want to use the application for a kit not listed here, you may need to update source files. If the kit does not have the required resources, the application may not work.
 
-3. In the **Starter Application** window, choose the example.
+3. In the **Project Creator - Select Application** dialog, choose the example.
 
-4. Click **Next** and complete the application creation process.
+4. Optionally, update the **Application Name:** and **Location** fields with the application name and local path where application is created. 
 
-See [Importing Code Example into ModusToolbox IDE - KBA225201](https://community.cypress.com/docs/DOC-15968) for details.
+5. Click **Create** to complete the application creation process.
+
+For more details, see the Eclipse IDE for ModusToolbox User Guide: *{ModusToolbox install directory}/ide_{version}/docs/mt_ide_user_guide.pdf*.
 
 ### In Command-line Interface (CLI):
 
@@ -51,71 +55,98 @@ See [Importing Code Example into ModusToolbox IDE - KBA225201](https://community
 
 2. Open a CLI terminal and navigate to the application folder.
 
+ On Linux and macOS, you can use any terminal application. On Windows, navigate to the modus-shell directory (*{ModusToolbox install directory}/tools_\<version>/modus-shell*) and run *Cygwin.bat*.
+
 3. Import required libraries by executing the `make getlibs` command.
+
+### In Third-party IDEs:
+
+1. Follow the instructions from the CLI section to download or clone the repository, and import libraries using the `make getlibs` command.
+
+2. Export the application to a supported IDE using the `make <ide>` command.
+
+3. Follow the instructions displayed in the terminal to create or import the application as an IDE project.
+
+For more details, see the "Exporting to IDEs" section of the ModusToolbox User Guide: *{ModusToolbox install directory}/ide_{version}/docs/mtb_user_guide.pdf*.
 
 ## Operation
 
-1. Connect the board to your PC using the provided USB cable through the USB connector.
+1. Connect the board to your PC using the provided USB cable through the KitProg3 USB connector.
 
-2. Modify WIFI_SSID and WIFI_PASSWORD macros to match with that of the Wi-Fi network credentials that you want to connect. These macros are defined in the `main.c` file.
+2. Modify the `WIFI_SSID`, `WIFI_PASSWORD`, and `WIFI_SECURITY_TYPE` macros to match with that of the Wi-Fi network credentials that you want to connect. These macros are defined in the *tcp_server.h* file. Ensure that the Wi-Fi network that you are connecting to is configured as a private network for the proper functioning of this example.
 
 3. Open a terminal program and select the KitProg3 COM port. Set the serial port parameters to 8N1 and 115200 baud.
 
 4. Program the board.
 
-   ### Using ModusToolbox IDE:
 
-   1. Select the application project in the Project Explorer.
-   2. In the **Quick Panel**, scroll down, and click **mtb_example_connectivity_tcp_server Program (KitProg3)**.
+   - **Using Eclipse IDE for ModusToolbox**:
 
-   ### Using CLI
+      1. Select the application project in the Project Explorer.
 
-   1. From the terminal, execute the `make program` command to build and program the application using the default toolchain to the default target. You can specify a target and toolchain manually:
-        ```
-        make program TARGET=<BSP> TOOLCHAIN=<toolchain>
-        ```
-        Example:
+      2. In the **Quick Panel**, scroll down, and click **\<Application Name> Program (KitProg3)**.
 
-        ```
-        make program TARGET=CY8CKIT-062S2-43012 TOOLCHAIN=GCC_ARM
-        ```
-        **Note**:  Before building the application, ensure that the *libs* folder contains the BSP file (*TARGET_xxx.lib*) corresponding to the TARGET. Execute the `make getlibs` command to fetch the BSP contents before building the application.
 
-   After programming, the application starts automatically. Confirm that the following text as shown in [Figure 1](#figure-1-uart-terminal-showing-the-wi-fi-connectivity-status) is displayed on the UART terminal. Note that Wi-Fi SSID and the IP address assigned as shown in [Figure 1](#figure-1-uart-terminal-showing-the-wi-fi-connectivity-status) will be different based on the network that you have connected to.
+   - **Using CLI**:
 
-   ##### Figure 1. UART Terminal Showing the Wi-Fi Connection Status
+     From the terminal, execute the `make program` command to build and program the application using the default toolchain to the default target. You can specify a target and toolchain manually:
+    
+   ```
+   make program TARGET=<BSP> TOOLCHAIN=<toolchain>
+   ```
+
+   Example:
+
+
+   ```
+   make program TARGET=CY8CPROTO-062-4343W TOOLCHAIN=GCC_ARM
+   ```
+         
+
+   **Note**:  Before building the application, ensure that the *deps* folder contains the BSP file (*TARGET_xxx.lib*) corresponding to the TARGET. Execute the `make getlibs` command to fetch the BSP contents before building the application.
+
+   After programming, the application starts automatically. Confirm that the following text as shown in Figure 1 is displayed on the UART terminal. Note that Wi-Fi SSID and the IP address assigned will be different based on the network that you have connected to.
+
+   **Figure 1. UART Terminal Showing the Wi-Fi Connection Status**
 
    ![Figure 1](images/uart-terminal-output.png)
 
-   Make a note of the IP address assigned to the kit as shown in [Figure 1](#figure-1-uart-terminal-showing-the-wi-fi-connection-status) 
-5. Ensure your computer is connected to the same Wi-Fi access point that you have configured in step 2.
+    
+5. Ensure that your computer is connected to the same Wi-Fi access point that you have configured in Step 2. Make a note of the IP address assigned to the kit as shown in Figure 1.
 
-6. Press the USER_BTN1 (SW2) button on the kit to start listening on the TCP port for any incoming client connections. Confirm that the user LED is ON, indicating that the TCP server is listening.
+6. Open the *tcp_client.py* script located in the  *{project directory}* in a text editor and update the IP address with the IP address assigned to your kit (as noted in Step 5). 
 
-7. Open the tcp_client.py script located in the  `<project directory>` in a text editor and update the IP address with the IP address assigned to your kit (as noted in step 4). 
+    For example, if the IP address assigned to your kit is `192.168.18.10`, update the following line in the *tcp_client.py* script:
 
-For example, if the IP address assigned to your kit is `172.20.10.3`, then update the following line in the tcp_client.py script as shown below:
+    ```
+    DEFAULT_IP   = '192.168.18.10'
+    ```
 
-```
-DEFAULT_IP   = '172.20.10.3'
-```
+7. From the project directory, open a command shell and run the Python TCP client (*tcp_client.py*). Note that the script will not run in the *modus-shell*. In the command shell opened in the project directory, type in the following command:
 
-8. From the project directory, open a command shell and run the python TCP secure client (tcp_client.py ). On successful connection, TCP server receives "Hello ModusToolbox!" message from the client. The TCP server then responds by sending the message "Hello World!" to the client.
+    ```
+      python tcp_client.py
+    ```
 
- ##### Figure 2. TCP Server Output
+   **Note:** Ensure that the firewall settings of your computer allow access to the Python software so that it can communicate with the TCP server. For more details on enabling Python access, refer to this community [thread](https://community.cypress.com/thread/53662)
+
+   
+8. Press the user button (CYBSP_USER_BTN) to send LED ON/OFF command to the Python TCP client. Each user button press will issue the LED ON or LED OFF commands alternately. The client in turn sends an acknowledgement message back to the server. Figure 2 and Figure 3 show the TCP server and TCP client outputs respectively. 
+
+ **Figure 2. TCP Server Output**
 
    ![Figure 2](images/tcp-server-output.png)
     
- ##### Figure 3. TCP Client Output
+ **Figure 3. TCP Client Output**
 
    ![Figure 3](images/tcp-client-output.png)
 
+   **Note:** Instead of using the Python TCP client (*tcp_client.py*), alternatively you can use the example [mtb-example-anycloud-tcp-client](https://github.com/cypresssemiconductorco/mtb-example-anycloud-tcp-client) to run as TCP client on a second kit. See the code example documentation to learn how to use the example.
 
-9. Steps 6 and 8 can be repeated indefinitely. 
 
 ## Debugging
 
-You can debug the example to step through the code. In the ModusToolbox IDE, use the **mtb_example_connectivity_tcp_server Debug (KitProg3)** configuration in the **Quick Panel**. See [Debugging a PSoC 6 MCU ModusToolbox Project - KBA224621](https://community.cypress.com/docs/DOC-15763) for details.
+You can debug the example to step through the code. In the IDE, use the **\<Application Name> Debug (KitProg3)** configuration in the **Quick Panel**. For more details, see the "Program and Debug" section in the Eclipse IDE for ModusToolbox User Guide: *{ModusToolbox install directory}/ide_{version}/docs/mt_ide_user_guide.pdf*.
 
 ## Design and Implementation
 
@@ -128,15 +159,13 @@ You can debug the example to step through the code. In the ModusToolbox IDE, use
 | :------- | :------------    | :------------ |
 | SDIO (HAL) | sdio_obj | SDIO interface for Wi-Fi Connectivity |
 | UART (HAL) |cy_retarget_io_uart_obj| UART HAL object used by Retarget-IO for Debug UART port |
-| LED (BSP) | CYBSP_USER_LED | User LED to show TCP server listening status |
-| BUTTON (BSP) | CYBSP_USER_BTN1 | User button used to start listening on a TCP port |
+| BUTTON (BSP) | CYBSP_USER_BTN | User button used to send LED ON/OFF commands to TCP client |
 
 This example uses the Arm® Cortex®-M4 (CM4) CPU of PSoC 6 MCU to execute an RTOS task: TCP server task. At device reset, the default Cortex-M0+ (CM0+) application enables the CM4 CPU and configures the CM0+ CPU to go to sleep.
 
-In this example, TCP server establishes a connection with a TCP client. Once the connection completes successfully between the TCP server and the client, the client sends a "Hello ModusToolbox!" message to the server and the server responds by sending a message "Hello World!".
+In this example, the TCP server establishes a connection with a TCP client. Once the connection completes successfully, the server allows the user to send LED ON/OFF command to the TCP client; the client responds by sending an acknowledgement message to the server.
 
-**Note:** CY8CPROTO-062-4343W board shares the same GPIO for the user button (USER BTN1) and the CYW4343W host wake up pin. Since this example uses the GPIO for interfacing with the user button, the SDIO interrupt to wake up the host is disabled by setting CY_WIFI_HOST_WAKE_SW_FORCE to '0' in the `Makefile` through the `DEFINES` variable.
-
+**Note:** CY8CPROTO-062-4343W board shares the same GPIO for the user button (CYBSP_USER_BTN) and the CYW4343W host wake up pin. Since this example uses the GPIO for interfacing with the user button, the SDIO interrupt to wake up the host is disabled by setting CY_WIFI_HOST_WAKE_SW_FORCE to '0' in the `Makefile` through the `DEFINES` variable.
 
 ## Related Resources
 
@@ -147,22 +176,25 @@ In this example, TCP server establishes a connection with a TCP client. Once the
 | [AN210781](https://www.cypress.com/AN210781) – Getting Started with PSoC 6 MCU with Bluetooth Low Energy (BLE) Connectivity on PSoC Creator | Describes PSoC 6 MCU with BLE Connectivity devices and how to build your first application with PSoC Creator |
 | [AN215656](https://www.cypress.com/AN215656) – PSoC 6 MCU: Dual-CPU System Design | Describes the dual-CPU architecture in PSoC 6 MCU, and shows how to build a simple dual-CPU design |
 | **Code Examples**                                            |                                                              |
-| [Using ModusToolbox IDE](https://github.com/cypresssemiconductorco/Code-Examples-for-ModusToolbox-Software) | [Using PSoC Creator](https://www.cypress.com/documentation/code-examples/psoc-6-mcu-code-examples) |
+| [Using ModusToolbox](https://github.com/cypresssemiconductorco/Code-Examples-for-ModusToolbox-Software) | [Using PSoC Creator](https://www.cypress.com/documentation/code-examples/psoc-6-mcu-code-examples) |
 | **Device Documentation**                                     |                                                              |
 | [PSoC 6 MCU Datasheets](https://www.cypress.com/search/all?f[0]=meta_type%3Atechnical_documents&f[1]=resource_meta_type%3A575&f[2]=field_related_products%3A114026) | [PSoC 6 Technical Reference Manuals](https://www.cypress.com/search/all/PSoC%206%20Technical%20Reference%20Manual?f[0]=meta_type%3Atechnical_documents&f[1]=resource_meta_type%3A583) |
-| **Development Kits**                                         | Buy at Cypress.com                                     |
+| **Development Kits**                                         | Buy at www.cypress.com                                       |
 | [CY8CKIT-062-BLE](https://www.cypress.com/CY8CKIT-062-BLE) PSoC 6 BLE Pioneer Kit | [CY8CKIT-062-WiFi-BT](https://www.cypress.com/CY8CKIT-062-WiFi-BT) PSoC 6 WiFi-BT Pioneer Kit |
-| [CY8CPROTO-063-BLE](https://www.cypress.com/CY8CPROTO-063-BLE) PSoC 6 BLE Prototyping Kit | [CY8CPROTO-062-4343W](https://www.cypress.com/cy8cproto-062-4343w) PSoC 6 Wi-Fi BT Prototyping Kit |
-| [CY8CKIT-062S2-43012](https://www.cypress.com/CY8CKIT-062S2-43012) PSoC 62S2 Wi-Fi BT Pioneer Kit | |
-| **Libraries**                                                |                |
-| Cypress Hardware Abstraction Layer Library and docs          | [psoc6hal](https://github.com/cypresssemiconductorco/psoc6hal) on GitHub |
-| RetargetIO - Library for redirecting low level IO commands to allow sending messages via standard printf/scanf functions over a UART connection | [retarget-io](https://github.com/cypresssemiconductorco/retarget-io) on GitHub |
+| [CY8CPROTO-063-BLE](https://www.cypress.com/CY8CPROTO-063-BLE) PSoC 6 BLE Prototyping Kit | [CY8CPROTO-062-4343W](https://www.cypress.com/CY8CPROTO-062-4343W) PSoC 6 Wi-Fi BT Prototyping Kit |
+| [CY8CKIT-062S2-43012](https://www.cypress.com/CY8CKIT-062S2-43012) PSoC 62S2 Wi-Fi BT Pioneer Kit | [CY8CPROTO-062S3-4343W](https://www.cypress.com/CY8CPROTO-062S3-4343W) PSoC 62S3 Wi-Fi BT Prototyping Kit |
+| [CYW9P62S1-43438EVB-01](https://www.cypress.com/CYW9P62S1-43438EVB-01) PSoC 62S1 Wi-Fi BT Pioneer Kit | [CYW9P62S1-43012EVB-01](https://www.cypress.com/CYW9P62S1-43012EVB-01) PSoC 62S1 Wi-Fi BT Pioneer Kit |                                                              |
+| **Libraries**                                                 |                                                              |
+| PSoC 6 Peripheral Driver Library (PDL) and docs                    | [psoc6pdl](https://github.com/cypresssemiconductorco/psoc6pdl) on GitHub |
+| Cypress Hardware Abstraction Layer (HAL) Library and docs          | [psoc6hal](https://github.com/cypresssemiconductorco/psoc6hal) on GitHub |
+| RetargetIO - A utility library to retarget the standard input/output (STDIO) messages to a UART port | [retarget-io](https://github.com/cypresssemiconductorco/retarget-io) on GitHub |
 | **Middleware**                                               |                                                              |
-| Links to all PSoC 6 Middleware                               | [psoc6-middleware](https://github.com/cypresssemiconductorco/psoc6-middleware) on GitHub |
-| Wi-Fi Middleware core                               | [wifi-mw-core](https://github.com/cypresssemiconductorco/wifi-mw-core) on GitHub |
+| Wi-Fi Middleware Core library                                    | [wifi-mw-core](https://github.com/cypresssemiconductorco/wifi-mw-core) on GitHub |
+| CapSense library and docs                                    | [capsense](https://github.com/cypresssemiconductorco/capsense) on GitHub |
+| Links to all PSoC 6 MCU Middleware                           | [psoc6-middleware](https://github.com/cypresssemiconductorco/psoc6-middleware) on GitHub |
 | **Tools**                                                    |                                                              |
-| [ModusToolbox IDE](https://www.cypress.com/modustoolbox)     | The Cypress IDE for PSoC 6 and IoT designers                 |
-| [PSoC Creator](https://www.cypress.com/products/psoc-creator-integrated-design-environment-ide) | The Cypress IDE for PSoC and FM0+ development                |
+| [Eclipse IDE for ModusToolbox](https://www.cypress.com/modustoolbox)     | The multi-platform, Eclipse-based Integrated Development Environment (IDE) that supports application configuration and development for PSoC 6 MCU and IoT designers.             |
+| [PSoC Creator](https://www.cypress.com/products/psoc-creator-integrated-design-environment-ide) | The Cypress IDE for PSoC and FM0+ MCU development.            |
 
 ## Other Resources
 
@@ -172,11 +204,12 @@ For PSoC 6 MCU devices, see [How to Design with PSoC 6 MCU - KBA223067](https://
 
 ## Document History
 
-Document Title: CE229153 - ModusToolbox Connectivity Example: TCP Server
+Document Title: CE229153 - AnyCloud Example: TCP Server
 
 | Version | Description of Change |
 | ------- | --------------------- |
 | 1.0.0   | New code example      |
+| 1.1.0   | Updated for ModusToobox 2.1. <br>Code updated to use Cypress Secure Sockets and Wi-Fi Connection Manager libraries.    |
 
 ------
 
