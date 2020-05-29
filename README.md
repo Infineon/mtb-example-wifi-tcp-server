@@ -18,7 +18,7 @@ This example uses the [Wi-Fi middleware core](https://github.com/cypresssemicond
 
 ## Hardware Setup
 
-This example uses the board's default configuration. See the kit user guide to ensure the board is configured correctly.
+This example uses the board's default configuration. See the kit user guide to ensure that the board is configured correctly.
 
 **Note**: The PSoC 6 BLE Pioneer Kit (CY8CKIT-062-BLE) and the PSoC 6 WiFi-BT Pioneer Kit (CY8CKIT-062-WIFI-BT) ship with KitProg2 installed. ModusToolbox software requires KitProg3. Before using this code example, make sure that the board is upgraded to KitProg3. The tool and instructions are available in the [Firmware Loader](https://github.com/cypresssemiconductorco/Firmware-loader) GitHub repository. If you do not upgrade, you will see an error like "unable to find CMSIS-DAP device" or "KitProg firmware is out of date".
 
@@ -35,15 +35,15 @@ This example uses the board's default configuration. See the kit user guide to e
 
 2. Pick a kit supported by the code example from the list shown in the **Project Creator - Choose Board Support Package (BSP)** dialog.
 
-    When you select a supported kit, the example is reconfigured automatically to work with the kit. To work with a different supported kit later, use the **Library Manager** to choose the BSP for the supported kit. You can use the Library Manager to select or update the BSP and firmware libraries used in this application. To access the Library Manager, right-click the application name from the Project Workspace window in the IDE, and select **ModusToolbox** > **Library Manager**. You can also access it from the **Quick Panel**.
+   When you select a supported kit, the example is reconfigured automatically to work with the kit. To work with a different supported kit later, use the **Library Manager** to choose the BSP for the supported kit. You can use the Library Manager to select or update the BSP and firmware libraries used in this application. To access the Library Manager, right-click the application name from the Project Workspace window in the IDE, and select **ModusToolbox** > **Library Manager**. You can also access it from the **Quick Panel**.
 
    You can also just start the application creation process again and select a different kit.
 
-   If you want to use the application for a kit not listed here, you may need to update source files. If the kit does not have the required resources, the application may not work.
+   If you want to use the application for a kit not listed here, you may need to update the source files. If the kit does not have the required resources, the application may not work.
 
 3. In the **Project Creator - Select Application** dialog, choose the example.
 
-4. Optionally, update the **Application Name:** and **Location** fields with the application name and local path where application is created. 
+4. Optionally, update the **Application Name:** and **Location** fields with the application name and local path where the application is created.
 
 5. Click **Create** to complete the application creation process.
 
@@ -55,13 +55,13 @@ For more details, see the Eclipse IDE for ModusToolbox User Guide: *{ModusToolbo
 
 2. Open a CLI terminal and navigate to the application folder.
 
- On Linux and macOS, you can use any terminal application. On Windows, navigate to the modus-shell directory (*{ModusToolbox install directory}/tools_\<version>/modus-shell*) and run *Cygwin.bat*.
+On Linux and macOS, you can use any terminal application. On Windows, navigate to the modus-shell directory (*{ModusToolbox install directory}/tools_\<version>/modus-shell*) and run *Cygwin.bat*.
 
-3. Import required libraries by executing the `make getlibs` command.
+3. Import the required libraries by executing the `make getlibs` command.
 
 ### In Third-party IDEs:
 
-1. Follow the instructions from the CLI section to download or clone the repository, and import libraries using the `make getlibs` command.
+1. Follow the instructions from the CLI section to download or clone the repository, and import the libraries using the `make getlibs` command.
 
 2. Export the application to a supported IDE using the `make <ide>` command.
 
@@ -122,7 +122,7 @@ For more details, see the "Exporting to IDEs" section of the ModusToolbox User G
     DEFAULT_IP   = '192.168.18.10'
     ```
 
-7. From the project directory, open a command shell and run the Python TCP client (*tcp_client.py*). Note that the script will not run in the *modus-shell*. In the command shell opened in the project directory, type in the following command:
+7. From the project directory, open a command shell and run the Python TCP client (*tcp_client.py*). In the command shell opened in the project directory, type in the following command:
 
     ```
       python tcp_client.py
@@ -152,7 +152,7 @@ You can debug the example to step through the code. In the IDE, use the **\<Appl
 
 ### Resources and Settings
 
-[Table 1](#table-1-application-resources) lists the ModusToolbox resources used in this example, and how they are used in the design.
+Table 1 lists the ModusToolbox resources used in this example, and how they are used in the design.
 
 ##### Table 1. Application Resources
 | Resource  |  Alias/Object     |    Purpose     |
@@ -210,12 +210,12 @@ Document Title: CE229153 - AnyCloud Example: TCP Server
 | ------- | --------------------- |
 | 1.0.0   | New code example      |
 | 1.1.0   | Updated for ModusToobox 2.1. <br>Code updated to use Cypress Secure Sockets and Wi-Fi Connection Manager libraries.    |
-
+| 1.2.0   | Makefile updated to sync with BSP changes. <br>Code updated to use RTOS Task Notification. |
 ------
 
 All other trademarks or registered trademarks referenced herein are the property of their respective owners.
 
-![Banner](images/Banner.png)
+![banner](images/footer_banner.png)
 
 -------------------------------------------------------------------------------
 
