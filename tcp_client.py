@@ -41,46 +41,37 @@ import optparse
 import time
 import sys
 
-
 BUFFER_SIZE = 1024
 
 # IP details for the TCP server
 DEFAULT_IP   = '192.168.18.10'   # IP address of the TCP server
 DEFAULT_PORT = 50007             # Port of the TCP server
 
-DEFAULT_KEEP_ALIVE = 0           # Keep the connection alive (=1), or close the connection (=0)
+DEFAULT_KEEP_ALIVE = 1           # TCP Keep Alive: 1 - Enable, 0 - Disable
 
-
-def tcp_client( server_ip, server_port, test_keepalive ):
-    print("================================================================================")
-    print("TCP Client")
-    print("================================================================================")
-    s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    s.connect((server_ip, server_port))
-    print("Connected to TCP Server (IP Address: ", DEFAULT_IP, "Port: ", DEFAULT_PORT, " )")
-        
-    while 1:
-        print("================================================================================")        
-        data = s.recv(BUFFER_SIZE);
-        print("Command from Server:")
-        if data.decode('utf-8') == '0':
-            print("LED OFF")
-            message = 'LED OFF ACK'
-            s.send(message.encode('utf-8'))
-        if data.decode('utf-8') == '1':
-            print("LED ON")
-            message = 'LED ON ACK'
-            s.send(message.encode('utf-8'))
-        print("Acknowledgement sent to server")        
+print("================================================================================")
+print("TCP Client")
+print("================================================================================")
+s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+s.setsockopt(socket.SOL_SOCKET, socket.SO_KEEPALIVE, DEFAULT_KEEP_ALIVE)
+s.setsockopt(socket.IPPROTO_TCP, socket.TCP_KEEPIDLE, 10)
+s.setsockopt(socket.IPPROTO_TCP, socket.TCP_KEEPINTVL, 1)
+s.setsockopt(socket.IPPROTO_TCP, socket.TCP_KEEPCNT, 2)
+s.connect((DEFAULT_IP, DEFAULT_PORT))
+print("Connected to TCP Server (IP Address: ", DEFAULT_IP, "Port: ", DEFAULT_PORT, " )")
     
+while 1:
+    print("================================================================================")        
+    data = s.recv(BUFFER_SIZE);
+    print("Command from Server:")
+    if data.decode('utf-8') == '0':
+        print("LED OFF")
+        message = 'LED OFF ACK'
+        s.send(message.encode('utf-8'))
+    if data.decode('utf-8') == '1':
+        print("LED ON")
+        message = 'LED ON ACK'
+        s.send(message.encode('utf-8'))
+    print("Acknowledgement sent to server")        
 
-
-if __name__ == '__main__':
-    parser = optparse.OptionParser()
-    parser.add_option("--hostip", dest="hostip", default=DEFAULT_IP, help="Hostip to listen on.")
-    parser.add_option("-p", "--port", dest="port", type="int", default=DEFAULT_PORT, help="Port to listen on [default: %default].")
-    parser.add_option("--test_keepalive", dest="test_keepalive", type="int", default=DEFAULT_KEEP_ALIVE, help="Test keepalive capability")
-    (options, args) = parser.parse_args()
-    #start tcp client
-    tcp_client(options.hostip, options.port, options.test_keepalive)
-
+# [] END OF FILE
