@@ -309,6 +309,8 @@ void tcp_server_task(void *arg)
                     {
                         /* Disconnect the socket. */
                         cy_socket_disconnect(client_handle, 0);
+                        /* Delete the socket. */
+                        cy_socket_delete(client_handle);
                     }
                 }
             }
@@ -656,6 +658,8 @@ static cy_rslt_t tcp_receive_msg_handler(cy_socket_t socket_handle, void *arg)
         {
             /* Disconnect the socket. */
             cy_socket_disconnect(socket_handle, 0);
+            /* Delete the socket. */
+            cy_socket_delete(socket_handle);
         }
     }
 
@@ -685,6 +689,8 @@ static cy_rslt_t tcp_disconnection_handler(cy_socket_t socket_handle, void *arg)
 
     /* Disconnect the TCP client. */
     result = cy_socket_disconnect(socket_handle, 0);
+    /* Delete the socket. */
+    cy_socket_delete(socket_handle);
 
     /* Set the client connection flag as false. */
     client_connected = false;
