@@ -2,13 +2,13 @@
 * File Name:   tcp_server.c
 *
 * Description: This file contains declaration of task and functions related to
-* TCP server operation.
+*              TCP server operation.
 *
 * Related Document: See README.md
 *
 *
 *******************************************************************************
-* Copyright 2020-2021, Cypress Semiconductor Corporation (an Infineon company) or
+* Copyright 2020-2022, Cypress Semiconductor Corporation (an Infineon company) or
 * an affiliate of Cypress Semiconductor Corporation.  All rights reserved.
 *
 * This software, including source code, documentation and related
@@ -59,11 +59,14 @@
 /* Standard C header file */
 #include <string.h>
 
+
+
+
 /* TCP server task header file. */
 #include "tcp_server.h"
 
-/* lwIP related header files. */
-#include "cy_lwip.h"
+/* IP address related header files (part of the lwIP TCP/IP stack). */
+#include "ip_addr.h"
 
 /* Standard C header files */
 #include <inttypes.h>
@@ -177,6 +180,11 @@ extern TaskHandle_t server_task_handle;
 /* Flag variable to check if TCP client is connected. */
 bool client_connected;
 
+cyhal_gpio_callback_data_t cb_data =
+{
+.callback = isr_button_press,
+.callback_arg = NULL
+};
 /*******************************************************************************
  * Function Name: tcp_server_task
  *******************************************************************************
@@ -204,7 +212,7 @@ void tcp_server_task(void *arg)
 
     /* Initialize the user button (CYBSP_USER_BTN) and register interrupt on falling edge. */
     cyhal_gpio_init(CYBSP_USER_BTN, CYHAL_GPIO_DIR_INPUT, CYHAL_GPIO_DRIVE_PULLUP, CYBSP_BTN_OFF);
-    cyhal_gpio_register_callback(CYBSP_USER_BTN, isr_button_press, NULL);
+    cyhal_gpio_register_callback(CYBSP_USER_BTN, &cb_data);
     cyhal_gpio_enable_event(CYBSP_USER_BTN, CYHAL_GPIO_IRQ_FALL, USER_BTN_INTR_PRIORITY, true);
 
     /* Initialize Wi-Fi connection manager. */
