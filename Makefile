@@ -152,6 +152,9 @@ PREBUILD=
 # Custom post-build commands to run.
 POSTBUILD=
 
+# To change the default policy
+CY_SECURE_POLICY_NAME=policy_single_CM0_CM4_smif_swap
+
 
 ################################################################################
 # Paths
