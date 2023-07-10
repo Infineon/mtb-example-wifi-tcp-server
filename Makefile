@@ -7,7 +7,7 @@
 #
 ################################################################################
 # \copyright
-# Copyright 2020-2022, Cypress Semiconductor Corporation (an Infineon company)
+# Copyright 2020-2023, Cypress Semiconductor Corporation (an Infineon company)
 # SPDX-License-Identifier: Apache-2.0
 # 
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -84,8 +84,18 @@ VERBOSE=
 #
 # ... then code in directories named COMPONENT_foo and COMPONENT_bar will be
 # added to the build
-#
-COMPONENTS=FREERTOS LWIP MBEDTLS 
+
+# Chose desired RTOS environment. Available options - FREERTOS, THREADX
+COMPONENTS=FREERTOS
+
+# Include additional components based on the selected environment
+ifeq ($(findstring FREERTOS, $(COMPONENTS)), FREERTOS)
+    COMPONENTS+=LWIP MBEDTLS SECURE_SOCKETS
+    $(info RTOS is FreeRTOS)
+else ifeq ($(findstring THREADX, $(COMPONENTS)), THREADX)
+    COMPONENTS+=NETXDUO SECURE_SOCKETS NETXSECURE
+    $(info RTOS is ThreadX)
+endif
 
 # Like COMPONENTS, but disable optional code that was enabled by default.
 DISABLE_COMPONENTS=
@@ -98,21 +108,40 @@ SOURCES=
 
 # Like SOURCES, but for include directories. Value should be paths to
 # directories (without a leading -I).
-INCLUDES=./configs
+INCLUDES=
 
+ifeq ($(findstring FREERTOS, $(COMPONENTS)), FREERTOS)
 # Custom configuration of mbedtls library.
-MBEDTLSFLAGS = MBEDTLS_USER_CONFIG_FILE='"mbedtls_user_config.h"'
+MBEDTLSFLAGS=MBEDTLS_USER_CONFIG_FILE='"mbedtls_user_config.h"'
+DEFINES+=$(MBEDTLSFLAGS)
+endif
 
 # Add additional defines to the build process (without a leading -D).
-DEFINES=$(MBEDTLSFLAGS) CYBSP_WIFI_CAPABLE CY_RETARGET_IO_CONVERT_LF_TO_CRLF CY_RTOS_AWARE 
+DEFINES+= CYBSP_WIFI_CAPABLE CY_RETARGET_IO_CONVERT_LF_TO_CRLF CY_RTOS_AWARE
+
+ifeq ($(findstring THREADX, $(COMPONENTS)), THREADX)
+
+# Conditionally include the NetX Duo and NetX Secure user configuraion files.
+DEFINES+=NX_INCLUDE_USER_DEFINE_FILE
+DEFINES+=NX_SECURE_INCLUDE_USER_DEFINE_FILE
+
+# PSoC6 uses 7 priority levels with 7 being the lowest priority. 
+# The PendSV interrupt used for scheduling runs at priority 7.
+# If there are no runnable tasks the system will stay in the PendSV
+# handler until there is a runnable thread. Other priority 7 interrupts
+# will be held off during this time so we need to make sure the default
+# HAL interrupt priority is higher that 7.
+DEFINES+=CYHAL_ISR_PRIORITY_DEFAULT=6
+
+endif
 
 # CY8CPROTO-062-4343W board shares the same GPIO for the user button (SW2)
 # and the CYW4343W host wake up pin. Since this example uses the GPIO for
 # interfacing with the user button, the SDIO interrupt to wake up the host is
 # disabled by setting CY_WIFI_HOST_WAKE_SW_FORCE to '0'.
 #
-# If you wish to enable this host wake up feature, Comment DEFINES+=CY_WIFI_HOST_WAKE_SW_FORCE=0. 
-# If you want this feature on CY8CPROTO-062-4343W, change the GPIO pin for USER BTN 
+# If you wish to enable this host wake up feature, Comment DEFINES+=CY_WIFI_HOST_WAKE_SW_FORCE=0.
+# If you want this feature on CY8CPROTO-062-4343W, change the GPIO pin for USER BTN
 # in design/hardware & Comment DEFINES+=CY_WIFI_HOST_WAKE_SW_FORCE=0.
 DEFINES+=CY_WIFI_HOST_WAKE_SW_FORCE=0
 

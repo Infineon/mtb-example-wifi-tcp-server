@@ -8,7 +8,7 @@
 *
 *
 *******************************************************************************
-* Copyright 2020-2022, Cypress Semiconductor Corporation (an Infineon company) or
+* Copyright 2020-2023, Cypress Semiconductor Corporation (an Infineon company) or
 * an affiliate of Cypress Semiconductor Corporation.  All rights reserved.
 *
 * This software, including source code, documentation and related
@@ -45,9 +45,8 @@
 #include "cybsp.h"
 #include "cy_retarget_io.h"
 
-/* FreeRTOS header file */
-#include <FreeRTOS.h>
-#include <task.h>
+/* RTOS header file */
+#include "cyabs_rtos.h"
 
 /* Cypress secure socket header file */
 #include "cy_secure_sockets.h"
@@ -65,8 +64,8 @@
 /* TCP server task header file. */
 #include "tcp_server.h"
 
-/* IP address related header files (part of the lwIP TCP/IP stack). */
-#include "ip_addr.h"
+/* IP address related header files. */
+#include "cy_nw_helper.h"
 
 /* Standard C header files */
 #include <inttypes.h>
@@ -81,6 +80,8 @@
                                                  (((uint32_t) c) << 16) | \
                                                  (((uint32_t) b) << 8) |\
                                                  ((uint32_t) a))
+
+#define IP_ADDR_BUFFER_SIZE                      (20u)
 
 #if(USE_AP_INTERFACE)
     #define WIFI_INTERFACE_TYPE                  CY_WCM_INTERFACE_TYPE_AP
@@ -146,6 +147,7 @@
 /* Debounce delay for user button. */
 #define DEBOUNCE_DELAY_MS                         (50)
 
+
 /*******************************************************************************
 * Function Prototypes
 ********************************************************************************/
@@ -174,9 +176,6 @@ uint32_t peer_addr_len;
 /* Flags to track the LED state. */
 bool led_state = CYBSP_LED_STATE_OFF;
 
-/* TCP server task handle. */
-extern TaskHandle_t server_task_handle;
-
 /* Flag variable to check if TCP client is connected. */
 bool client_connected;
 
@@ -185,6 +184,11 @@ cyhal_gpio_callback_data_t cb_data =
 .callback = isr_button_press,
 .callback_arg = NULL
 };
+
+/* Queue handler */
+extern cy_queue_t led_command_q;
+
+
 /*******************************************************************************
  * Function Name: tcp_server_task
  *******************************************************************************
@@ -279,7 +283,7 @@ void tcp_server_task(void *arg)
     while(true)
     {
         /* Wait till user button is pressed to send LED ON/OFF command to TCP client. */
-        xTaskNotifyWait(0, 0, &led_state_cmd, portMAX_DELAY);
+        cy_rtos_get_queue(&led_command_q, &led_state_cmd, CY_RTOS_NEVER_TIMEOUT, false);
 
         /* Disable the GPIO signal falling edge detection until the command is
          * sent to the TCP client.
@@ -287,7 +291,7 @@ void tcp_server_task(void *arg)
         cyhal_gpio_enable_event(CYBSP_USER_BTN, CYHAL_GPIO_IRQ_FALL, USER_BTN_INTR_PRIORITY, false);
 
         /* Wait till the debounce period of the user button. */
-        vTaskDelay(DEBOUNCE_DELAY_MS/portTICK_PERIOD_MS);
+        cy_rtos_delay_milliseconds(DEBOUNCE_DELAY_MS);
 
         if(!cyhal_gpio_read(CYBSP_USER_BTN))
         {
@@ -341,11 +345,18 @@ void tcp_server_task(void *arg)
 static cy_rslt_t connect_to_wifi_ap(void)
 {
     cy_rslt_t result = CY_RSLT_SUCCESS;
+    char ip_addr_str[IP_ADDR_BUFFER_SIZE];
 
     /* Variables used by Wi-Fi connection manager.*/
     cy_wcm_connect_params_t wifi_conn_param;
 
     cy_wcm_ip_address_t ip_address;
+
+    /* IP variable for network utility functions */
+    cy_nw_ip_address_t nw_ip_addr =
+    {
+        .version = NW_IP_IPV4
+    };
 
     /* Variable to track the number of connection retries to the Wi-Fi AP specified
      * by WIFI_SSID macro.
@@ -369,7 +380,9 @@ static cy_rslt_t connect_to_wifi_ap(void)
         {
             printf("Successfully connected to Wi-Fi network '%s'.\n",
                                 wifi_conn_param.ap_credentials.SSID);
-            printf("IP Address Assigned: %s\n", ip4addr_ntoa((const ip4_addr_t *)&ip_address.ip.v4));
+            nw_ip_addr.ip.v4 = ip_address.ip.v4;
+            cy_nw_ntoa(&nw_ip_addr, ip_addr_str);
+            printf("IP Address Assigned: %s\n", ip_addr_str);
 
             /* IP address and TCP port number of the TCP server */
             tcp_server_addr.ip_address.ip.v4 = ip_address.ip.v4;
@@ -380,7 +393,7 @@ static cy_rslt_t connect_to_wifi_ap(void)
 
         printf("Connection to Wi-Fi network failed with error code 0x%08"PRIx32"\n."
                "Retrying in %d ms...\n", (uint32_t)result, WIFI_CONN_RETRY_INTERVAL_MSEC);
-        vTaskDelay(pdMS_TO_TICKS(WIFI_CONN_RETRY_INTERVAL_MSEC));
+        cy_rtos_delay_milliseconds(WIFI_CONN_RETRY_INTERVAL_MSEC);
     }
 
     /* Stop retrying after maximum retry attempts. */
@@ -410,6 +423,13 @@ static cy_rslt_t connect_to_wifi_ap(void)
 static cy_rslt_t softap_start(void)
 {
     cy_rslt_t result = CY_RSLT_SUCCESS;
+    char ip_addr_str[IP_ADDR_BUFFER_SIZE];
+
+    /* IP variable for network utility functions */
+    cy_nw_ip_address_t nw_ip_addr =
+    {
+        .version = NW_IP_IPV4
+    };
 
     /* Initialize the Wi-Fi device as a Soft AP. */
     cy_wcm_ap_credentials_t softap_credentials = {SOFTAP_SSID, SOFTAP_PASSWORD,
@@ -431,8 +451,9 @@ static cy_rslt_t softap_start(void)
         printf("Wi-Fi Device configured as Soft AP\n");
         printf("Connect TCP client device to the network: SSID: %s Password:%s\n",
                 SOFTAP_SSID, SOFTAP_PASSWORD);
-        printf("SofAP IP Address : %s\n\n",
-                ip4addr_ntoa((const ip4_addr_t *)&softap_ip_info.ip_address.ip.v4));
+        nw_ip_addr.ip.v4 = softap_ip_info.ip_address.ip.v4;
+        cy_nw_ntoa(&nw_ip_addr, ip_addr_str);
+        printf("SofAP IP Address : %s\n\n", ip_addr_str);
 
         /* IP address and TCP port number of the TCP server. */
         tcp_server_addr.ip_address.ip.v4 = softap_ip_info.ip_address.ip.v4;
@@ -526,7 +547,7 @@ static cy_rslt_t create_tcp_server_socket(void)
     {
         printf("Failed to bind to socket! Error code: 0x%08"PRIx32"\n", (uint32_t)result);
     }
-    
+
     return result;
 }
 
@@ -547,12 +568,21 @@ static cy_rslt_t create_tcp_server_socket(void)
 static cy_rslt_t tcp_connection_handler(cy_socket_t socket_handle, void *arg)
 {
     cy_rslt_t result;
+    char ip_addr_str[IP_ADDR_BUFFER_SIZE];
+
+    /* IP variable for network utility functions */
+    cy_nw_ip_address_t nw_ip_addr =
+    {
+        .version = NW_IP_IPV4
+    };
 
     /* TCP keep alive parameters. */
     int keep_alive = 1;
+#if defined (COMPONENT_LWIP)
     uint32_t keep_alive_interval = TCP_KEEP_ALIVE_INTERVAL_MS;
     uint32_t keep_alive_count    = TCP_KEEP_ALIVE_RETRY_COUNT;
     uint32_t keep_alive_idle_time = TCP_KEEP_ALIVE_IDLE_TIME_MS;
+#endif
 
     /* Accept new incoming connection from a TCP client.*/
     result = cy_socket_accept(socket_handle, &peer_addr, &peer_addr_len,
@@ -560,10 +590,12 @@ static cy_rslt_t tcp_connection_handler(cy_socket_t socket_handle, void *arg)
     if(result == CY_RSLT_SUCCESS)
     {
         printf("Incoming TCP connection accepted\n");
-        printf("IP Address : %s\n\n",
-                ip4addr_ntoa((const ip4_addr_t *)&peer_addr.ip_address.ip.v4));
+        nw_ip_addr.ip.v4 = peer_addr.ip_address.ip.v4;
+        cy_nw_ntoa(&nw_ip_addr, ip_addr_str);
+        printf("IP Address : %s\n\n", ip_addr_str);
         printf("Press the user button to send LED ON/OFF command to the TCP client\n");
 
+#if defined (COMPONENT_LWIP)
         /* Set the TCP keep alive interval. */
         result = cy_socket_setsockopt(client_handle, CY_SOCKET_SOL_TCP,
                                       CY_SOCKET_SO_TCP_KEEPALIVE_INTERVAL,
@@ -593,6 +625,7 @@ static cy_rslt_t tcp_connection_handler(cy_socket_t socket_handle, void *arg)
             printf("Set socket option: CY_SOCKET_SO_TCP_KEEPALIVE_IDLE_TIME failed\n");
             return result;
         }
+#endif
 
         /* Enable TCP keep alive. */
         result = cy_socket_setsockopt(client_handle, CY_SOCKET_SOL_SOCKET,
@@ -730,9 +763,7 @@ static cy_rslt_t tcp_disconnection_handler(cy_socket_t socket_handle, void *arg)
  *
  *******************************************************************************/
 static void isr_button_press( void *callback_arg, cyhal_gpio_event_t event)
-{ 
-    BaseType_t xHigherPriorityTaskWoken = pdFALSE;
-
+{
     /* Variable to hold the LED ON/OFF command to be sent to the TCP client. */
     uint32_t led_state_cmd;
 
@@ -746,12 +777,9 @@ static void isr_button_press( void *callback_arg, cyhal_gpio_event_t event)
         led_state_cmd = LED_ON_CMD;
     }
 
-    /* Set the flag to send command to TCP client. */
-    xTaskNotifyFromISR(server_task_handle, led_state_cmd,
-                      eSetValueWithoutOverwrite, &xHigherPriorityTaskWoken);
-
-    /* Force a context switch if xHigherPriorityTaskWoken is now set to pdTRUE. */
-    portYIELD_FROM_ISR(xHigherPriorityTaskWoken);
+    /* Send command to TCP client. */
+    cy_rtos_put_queue(&led_command_q, &led_state_cmd, 0, true);
 }
+
 
 /* [] END OF FILE */

@@ -3,7 +3,7 @@
 *
 * Description: This is the source code for TCP Server Example in ModusToolbox.
 * In this example, TCP server establishes a connection with a TCP client.
-* Once the connection completes successfully, the server allows the user to 
+* Once the connection completes successfully, the server allows the user to
 * send LED ON/OFF command to the TCP client and the client responds by sending
 * an acknowledgement message to the server.
 *
@@ -11,7 +11,7 @@
 *
 *
 *******************************************************************************
-* Copyright 2020-2022, Cypress Semiconductor Corporation (an Infineon company) or
+* Copyright 2020-2023, Cypress Semiconductor Corporation (an Infineon company) or
 * an affiliate of Cypress Semiconductor Corporation.  All rights reserved.
 *
 * This software, including source code, documentation and related
@@ -48,9 +48,16 @@
 #include "cybsp.h"
 #include "cy_retarget_io.h"
 
-/* FreeRTOS header file */
+/* RTOS header file */
+#include "cyabs_rtos.h"
+#if defined (COMPONENT_FREERTOS)
 #include <FreeRTOS.h>
 #include <task.h>
+
+#elif defined (COMPONENT_THREADX)
+#include "tx_api.h"
+#include "tx_initialize.h"
+#endif
 
 /* TCP server task header file. */
 #include "tcp_server.h"
@@ -68,17 +75,22 @@
 * Macros
 ********************************************************************************/
 /* RTOS related macros for TCP server task. */
+#if defined (COMPONENT_FREERTOS)
 #define TCP_SERVER_TASK_STACK_SIZE                (1024 * 5)
 #define TCP_SERVER_TASK_PRIORITY                  (1)
+#endif
+
+/* Queue lengths of message queues used in this project */
+#define SINGLE_ELEMENT_QUEUE                      (1u)
 
 /*******************************************************************************
 * Global Variables
 ********************************************************************************/
+/* Queue handler */
+cy_queue_t led_command_q;
+
 /* This enables RTOS aware debugging. */
 volatile int uxTopUsedPriority;
-
-/* TCP server task handle. */
-TaskHandle_t server_task_handle;
 
 /*******************************************************************************
  * Function Name: main
@@ -96,15 +108,19 @@ TaskHandle_t server_task_handle;
  *******************************************************************************/
 int main()
 {
-    cy_rslt_t result ;
+    cy_rslt_t result;
 
+#if defined (COMPONENT_FREERTOS)
     /* This enables RTOS aware debugging in OpenOCD. */
-    uxTopUsedPriority = configMAX_PRIORITIES - 1 ;
+    uxTopUsedPriority = configMAX_PRIORITIES - 1;
+#elif defined (COMPONENT_THREADX)
+    uxTopUsedPriority = TX_MAX_PRIORITIES - 1;
+#endif
 
     /* Initialize the board support package. */
     result = cybsp_init() ;
     CY_ASSERT(result == CY_RSLT_SUCCESS) ;
-    
+
     /* To avoid compiler warnings. */
     (void) result;
 
@@ -112,13 +128,13 @@ int main()
     __enable_irq();
 
     /* Initialize retarget-io to use the debug UART port. */
-    cy_retarget_io_init(CYBSP_DEBUG_UART_TX, CYBSP_DEBUG_UART_RX, 
+    cy_retarget_io_init(CYBSP_DEBUG_UART_TX, CYBSP_DEBUG_UART_RX,
                         CY_RETARGET_IO_BAUDRATE);
-    #if defined(CY_DEVICE_PSOC6A512K)
+#if defined(CY_DEVICE_PSOC6A512K)
     const uint32_t bus_frequency = 50000000lu;
     cy_serial_flash_qspi_init(smifMemConfigs[0], CYBSP_QSPI_D0, CYBSP_QSPI_D1, CYBSP_QSPI_D2, CYBSP_QSPI_D3, NC, NC, NC, NC, CYBSP_QSPI_SCK, CYBSP_QSPI_SS, bus_frequency);
     cy_serial_flash_qspi_enable_xip(true);
-    #endif
+#endif
 
     /* \x1b[2J\x1b[;H - ANSI ESC sequence to clear screen. */
     printf("\x1b[2J\x1b[;H");
@@ -126,15 +142,39 @@ int main()
     printf("CE229153 - Connectivity Example: TCP Server\n");
     printf("===============================================================\n\n");
 
+    /* Initialize a queue to receive command. */
+    cy_rtos_queue_init(&led_command_q, SINGLE_ELEMENT_QUEUE, sizeof(uint8_t));
+
+#if defined (COMPONENT_FREERTOS)
     /* Create the tasks. */
-    xTaskCreate(tcp_server_task, "Network task", TCP_SERVER_TASK_STACK_SIZE, NULL, 
-               TCP_SERVER_TASK_PRIORITY, &server_task_handle);
+    xTaskCreate(tcp_server_task, "Network task", TCP_SERVER_TASK_STACK_SIZE, NULL,
+               TCP_SERVER_TASK_PRIORITY, NULL);
 
     /* Start the FreeRTOS scheduler. */
     vTaskStartScheduler();
 
     /* Should never get here. */
     CY_ASSERT(0);
+
+#elif defined (COMPONENT_THREADX)
+    /*
+    * Start the ThreadX kernel.
+    * This routine never returns.
+    */
+
+    tx_kernel_enter();
+
+    /* Should never get here. */
+    CY_ASSERT(0);
+#endif
 }
 
-/* [] END OF FILE */
+#if defined (COMPONENT_THREADX)
+void application_start(void)
+{
+    tcp_server_task(NULL);
+}
+#endif
+
+
+ /* [] END OF FILE */
