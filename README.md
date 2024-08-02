@@ -8,7 +8,7 @@ This example can be modified to use ThreadX and NetX Duo instead of FreeRTOS and
 
 [View this README on GitHub.](https://github.com/Infineon/mtb-example-wifi-tcp-server)
 
-[Provide feedback on this code example.](https://cypress.co1.qualtrics.com/jfe/form/SV_1NTns53sK2yiljn?Q_EED=eyJVbmlxdWUgRG9jIElkIjoiQ0UyMjkxNTMiLCJTcGVjIE51bWJlciI6IjAwMi0yOTE1MyIsIkRvYyBUaXRsZSI6IlRDUCBzZXJ2ZXIiLCJyaWQiOiJzZGFrIiwiRG9jIHZlcnNpb24iOiI0LjEuMCIsIkRvYyBMYW5ndWFnZSI6IkVuZ2xpc2giLCJEb2MgRGl2aXNpb24iOiJNQ0QiLCJEb2MgQlUiOiJJQ1ciLCJEb2MgRmFtaWx5IjoiUFNPQyJ9)
+[Provide feedback on this code example.](https://cypress.co1.qualtrics.com/jfe/form/SV_1NTns53sK2yiljn?Q_EED=eyJVbmlxdWUgRG9jIElkIjoiQ0UyMjkxNTMiLCJTcGVjIE51bWJlciI6IjAwMi0yOTE1MyIsIkRvYyBUaXRsZSI6IlRDUCBzZXJ2ZXIiLCJyaWQiOiJuYW5qdW5ndWRzdXIiLCJEb2MgdmVyc2lvbiI6IjQuMi4wIiwiRG9jIExhbmd1YWdlIjoiRW5nbGlzaCIsIkRvYyBEaXZpc2lvbiI6Ik1DRCIsIkRvYyBCVSI6IklDVyIsIkRvYyBGYW1pbHkiOiJQU09DIn0=)
 
 
 ## Requirements
@@ -33,7 +33,7 @@ This example can be modified to use ThreadX and NetX Duo instead of FreeRTOS and
 - [PSoC&trade; 62S1 Wi-Fi Bluetooth&reg; Pioneer Kit](https://www.infineon.com/CYW9P62S1-43012EVB-01) (`CYW9P62S1-43012EVB-01`)
 - [PSoC&trade; 62S3 Wi-Fi Bluetooth&reg; Prototyping Kit](https://www.infineon.com/CY8CPROTO-062S3-4343W) (`CY8CPROTO-062S3-4343W`)
 - [PSoC&trade; 64 "Secure Boot" Wi-Fi Bluetooth&reg; Pioneer Kit](https://www.infineon.com/CY8CKIT-064B0S2-4343W) (`CY8CKIT-064B0S2-4343W`)
-- [PSoC&trade; 62S2 Evaluation Kit](https://www.infineon.com/CY8CEVAL-062S2) (`CY8CEVAL-062S2-LAI-4373M2`, `CY8CEVAL-062S2-MUR-43439M2`,`CY8CEVAL-062S2-CYW43022CUB`)
+- [PSoC&trade; 62S2 Evaluation Kit](https://www.infineon.com/CY8CEVAL-062S2) (`CY8CEVAL-062S2-LAI-4373M2`, `CY8CEVAL-062S2-MUR-43439M2`,`CY8CEVAL-062S2-CYW43022CUB` ,CY8CEVAL-062S2-CYW955513SDM2WLIPA)
 
 ## Hardware setup
 
@@ -379,6 +379,7 @@ Document title: *CE229153* - *TCP server*
  3.1.0   | Added support for CY8CKIT-064B0S2-4343W 
  4.0.0   | Updated to use abstraction-rtos to support various RTOS environments 
  4.1.0   | Added support for CY8CEVAL-062S2-CYW43022CUB
+ 4.2.0   | Added support for CY8CEVAL-062S2-CYW955513SDM2WLIPA
 
 
 <br />
